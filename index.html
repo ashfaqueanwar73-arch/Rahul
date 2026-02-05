@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anwar Tea Stall</title>
+
+<style>
+body{font-family:Arial;background:#f2f2f2;margin:0}
+header{background:#2c3e50;color:#fff;padding:12px;text-align:center}
+.box{background:#fff;margin:10px;padding:12px;border-radius:8px}
+input,select,button{width:100%;padding:8px;margin-top:6px}
+button{background:#27ae60;color:#fff;border:none;border-radius:5px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #aaa;padding:6px;text-align:center;font-size:14px}
+.wh{background:#25D366}
+.del{background:#e74c3c}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h3>🔐 Enter PIN</h3>
+<input type="password" id="pinInput">
+<button onclick="login()">Login</button>
+</div>
+
+<div id="app" style="display:none">
+
+<header>
+<h3>ANWAR TEA STALL</h3>
+<small>📞 6290228046</small>
+</header>
+
+<div class="box">
+<h3>Add Transaction</h3>
+<input type="date" id="date">
+<input type="text" id="product" placeholder="Product Name">
+<input type="text" id="cname" placeholder="Customer Name">
+<input type="text" id="cmobile" placeholder="Customer Mobile">
+<input type="number" id="amount" placeholder="Amount">
+<select id="ptype">
+<option>Cash</option>
+<option>Credit</option>
+</select>
+<button onclick="addTx()">Save</button>
+</div>
+
+<div class="box">
+<h3>Transactions</h3>
+<table>
+<thead>
+<tr>
+<th>Date</th><th>Product</th><th>Name</th><th>Amount</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+const PIN="1234";
+const BUSINESS="ANWAR TEA STALL";
+const BMOBILE="6290228046";
+
+let tx=JSON.parse(localStorage.getItem("tx"))||[];
+
+function login(){
+  if(pinInput.value===PIN){
+    document.querySelector(".box").style.display="none";
+    app.style.display="block";
+  }
+}
+
+function addTx(){
+  tx.push({
+    date:date.value,
+    product:product.value,
+    name:cname.value,
+    mobile:cmobile.value,
+    amount:amount.value,
+    type:ptype.value
+  });
+  localStorage.setItem("tx",JSON.stringify(tx));
+  showTx();
+}
+
+function showTx(){
+  list.innerHTML="";
+  tx.forEach((t,i)=>{
+    list.innerHTML+=`
+    <tr>
+      <td>${t.date}</td>
+      <td>${t.product}</td>
+      <td>${t.name}</td>
+      <td>₹${t.amount}</td>
+      <td>
+        <button onclick="invoice(${i})">Invoice</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function invoice(i){
+  const {jsPDF}=window.jspdf;
+  let t=tx[i];
+  let p=new jsPDF();
+
+  /* HEADER */
+  p.setFontSize(20);
+  p.text("INVOICE",20,20);
+
+  p.setFontSize(11);
+  p.text(BUSINESS,140,18);
+  p.text("Mobile: "+BMOBILE,140,25);
+
+  p.line(20,30,190,30);
+
+  /* INFO */
+  p.text("Invoice No: INV-"+(i+1),20,40);
+  p.text("Date: "+t.date,150,40);
+
+  /* BILL TO */
+  p.text("BILL TO:",20,55);
+  p.text(t.name,20,62);
+  p.text("Mobile: "+t.mobile,20,69);
+
+  /* TABLE */
+  p.line(20,78,190,78);
+  p.text("DESCRIPTION",22,85);
+  p.text("QTY",120,85);
+  p.text("PRICE",145,85);
+  p.text("TOTAL",170,85);
+  p.line(20,88,190,88);
+
+  p.text(t.product,22,98);
+  p.text("1",125,98);
+  p.text("₹"+t.amount,145,98);
+  p.text("₹"+t.amount,170,98);
+
+  p.line(20,105,190,105);
+
+  /* TOTAL */
+  p.text("SUBTOTAL:",140,115);
+  p.text("₹"+t.amount,170,115);
+
+  p.text("PAYMENT:",140,125);
+  p.text(t.type,170,125);
+
+  p.setFillColor(220,220,220);
+  p.rect(120,135,70,15,"F");
+  p.setFontSize(14);
+  p.text("Balance Due ₹"+t.amount,125,146);
+
+  p.setFontSize(10);
+  p.text("Thank you for visiting Anwar Tea Stall",105,165,{align:"center"});
+
+  p.save("Invoice_Anwar_Tea_Stall.pdf");
+}
+
+showTx();
+</script>
+
+</body>
+</html>function pdf(i){
+  const { jsPDF } = window.jspdf;
+  let t = tx[i];
+  let p = new jsPDF();
+
+  /* HEADER */
+  p.setFontSize(16);
+  p.text("ANWAR TEA STALL", 105, 15, { align: "center" });
+  p.setFontSize(10);
+  p.text("Mobile: 6290228046", 105, 22, { align: "center" });
+  p.line(20, 26, 190, 26);
+
+  /* INVOICE INFO */
+  p.setFontSize(11);
+  p.text("Invoice Date: " + t.date, 20, 35);
+  p.text("Customer Name: " + t.name, 20, 42);
+  p.text("Customer Mobile: " + t.mobile, 20, 49);
+
+  /* PRODUCT TABLE HEADER */
+  p.line(20, 55, 190, 55);
+  p.text("Product Details", 20, 62);
+  p.line(20, 64, 190, 64);
+
+  p.text("Product Name", 25, 72);
+  p.text("Amount", 160, 72);
+  p.line(20, 75, 190, 75);
+
+  /* PRODUCT ROW */
+  p.text(t.product, 25, 82);
+  p.text("Rs " + t.amount, 160, 82);
+
+  /* TOTAL */
+  p.line(20, 88, 190, 88);
+  p.text("Payment Type: " + t.type, 25, 96);
+  p.setFontSize(12);
+  p.text("TOTAL: Rs " + t.amount, 160, 96);
+
+  /* FOOTER */
+  p.setFontSize(10);
+  p.text("Thank you for visiting Anwar Tea Stall", 105, 115, { align: "center" });
+
+  p.save("Invoice_Anwar_Tea_Stall.pdf");
+}async function share(i){
+  const { jsPDF } = window.jspdf;
+  let t = tx[i];
+  let p = new jsPDF();
+
+  p.setFontSize(16);
+  p.text("ANWAR TEA STALL", 105, 15, { align: "center" });
+  p.setFontSize(10);
+  p.text("Mobile: 6290228046", 105, 22, { align: "center" });
+
+  p.text("Product: " + t.product, 20, 40);
+  p.text("Amount: Rs " + t.amount, 20, 50);
+  p.text("Payment: " + t.type, 20, 60);
+
+  let blob = p.output("blob");
+  let file = new File([blob], "Invoice_Anwar_Tea_Stall.pdf", {
+    type: "application/pdf"
+  });
+
+  if(navigator.share){
+    await navigator.share({
+      files: [file],
+      title: "Invoice - Anwar Tea Stall",
+      text: "Your bill from Anwar Tea Stall"
+    });
+  } else {
+    alert("Sharing not supported on this device");<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anwar Tea Stall</title>
+
+<style>
+body{font-family:Arial;background:#f2f2f2;margin:0}
+header{background:#2c3e50;color:#fff;padding:12px;text-align:center}
+.box{background:#fff;margin:10px;padding:12px;border-radius:8px}
+input,select,button{width:100%;padding:8px;margin-top:6px}
+button{background:#27ae60;color:#fff;border:none;border-radius:5px}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+th,td{border:1px solid #ccc;padding:6px;text-align:center}
+.wh{background:#25D366}
+.del{background:#e74c3c}
+small{color:#ddd}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox" class="box">
+<h3>🔐 Enter PIN</h3>
+<input type="password" id="pinInput" placeholder="Enter PIN">
+<button onclick="login()">Login</button>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+<header>
+<h3>ANWAR TEA STALL</h3>
+<small>📞 6290228046</small>
+</header>
+
+<!-- ADD TRANSACTION -->
+<div class="box">
+<h3>➕ Add Transaction</h3>
+<input type="date" id="date">
+<input type="text" id="product" placeholder="Product (Tea / Coffee)">
+<input type="text" id="cname" placeholder="Customer Name">
+<input type="text" id="cmobile" placeholder="Customer Mobile">
+<input type="number" id="amount" placeholder="Amount">
+<select id="ptype">
+<option>Cash</option>
+<option>Credit</option>
+</select>
+<button onclick="addTx()">Save</button>
+</div>
+
+<!-- SEARCH -->
+<div class="box">
+<h3>🔍 Search</h3>
+<input type="text" id="search" placeholder="Name / Mobile / Product" onkeyup="showTx()">
+</div>
+
+<!-- REPORT -->
+<div class="box">
+<h3>📊 Sales Report</h3>
+<p id="daily"></p>
+<p id="monthly"></p>
+<p id="cash"></p>
+<p id="credit"></p>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="box">
+<h3>📋 Transactions</h3>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Product</th>
+<th>Name</th>
+<th>Amount</th>
+<th>Type</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+</div>
+
+<!-- CUSTOMER LEDGER -->
+<div class="box">
+<h3>📒 Customer Ledger</h3>
+<input type="text" id="ledgerName" placeholder="Exact Customer Name">
+<button onclick="showLedger()">Show Ledger</button>
+
+<p id="ltotal"></p>
+<p id="lcredit"></p>
+<p id="lbalance"></p>
+
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Product</th>
+<th>Amount</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody id="ledgerList"></tbody>
+</table>
+</div>
+
+</div>
+
+<!-- PDF LIB -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+/* CONFIG */
+const PIN="1234";
+const BUSINESS="ANWAR TEA STALL";
+const BMOBILE="6290228046";
+
+/* LOGIN */
+function login(){
+  if(pinInput.value===PIN){
+    loginBox.style.display="none";
+    app.style.display="block";
+  } else alert("Wrong PIN");
+}
+
+/* DATA */
+let tx=JSON.parse(localStorage.getItem("tx"))||[];
+
+/* ADD TRANSACTION */
+function addTx(){
+  if(!date.value||!product.value||!amount.value){
+    alert("Date, Product, Amount required");
+    return;
+  }
+  tx.push({
+    date:date.value,
+    product:product.value,
+    name:cname.value,
+    mobile:cmobile.value,
+    amount:amount.value,
+    type:ptype.value
+  });
+  localStorage.setItem("tx",JSON.stringify(tx));
+  product.value=cname.value=cmobile.value=amount.value="";
+  showTx();
+}
+
+/* SHOW TRANSACTIONS */
+function showTx(){
+  let s=search.value.toLowerCase();
+  list.innerHTML="";
+  tx.filter(t=>
+    t.name.toLowerCase().includes(s)||
+    t.mobile.includes(s)||
+    t.product.toLowerCase().includes(s)
+  ).forEach((t,i)=>{
+    list.innerHTML+=`
+    <tr>
+      <td>${t.date}</td>
+      <td>${t.product}</td>
+      <td>${t.name}</td>
+      <td>₹${t.amount}</td>
+      <td>${t.type}</td>
+      <td>
+        <button onclick="pdf(${i})">PDF</button>
+        <button class="wh" onclick="share(${i})">WA</button>
+        <button class="del" onclick="removeTx(${i})">❌</button>
+      </td>
+    </tr>`;
+  });
+  updateReport();
+}
+
+/* DELETE */
+function removeTx(i){
+  if(confirm("Delete transaction?")){
+    tx.splice(i,1);
+    localStorage.setItem("tx",JSON.stringify(tx));
+    showTx();
+  }
+}
+
+/* REPORT */
+function updateReport(){
+  let today=new Date().toISOString().slice(0,10);
+  let month=today.slice(0,7);
+  let d=0,m=0,cashT=0,creditT=0;
+  tx.forEach(t=>{
+    if(t.date===today){
+      d+=Number(t.amount);
+      t.type==="Cash"?cashT+=Number(t.amount):creditT+=Number(t.amount);
+    }
+    if(t.date.startsWith(month)) m+=Number(t.amount);
+  });
+  daily.innerHTML="🗓️ Today Sale: ₹"+d;
+  monthly.innerHTML="📅 Monthly Sale: ₹"+m;
+  cash.innerHTML="💵 Cash: ₹"+cashT;
+  credit.innerHTML="🧾 Credit: ₹"+creditT;
+}
+
+/* LEDGER */
+function showLedger(){
+  let name=ledgerName.value.toLowerCase();
+  let total=0,credit=0;
+  ledgerList.innerHTML="";
+  tx.filter(t=>t.name.toLowerCase()===name)
+    .forEach(t=>{
+      total+=Number(t.amount);
+      if(t.type==="Credit") credit+=Number(t.amount);
+      ledgerList.innerHTML+=`
+      <tr>
+        <td>${t.date}</td>
+        <td>${t.product}</td>
+        <td>₹${t.amount}</td>
+        <td>${t.type}</td>
+      </tr>`;
+    });
+  ltotal.innerHTML="🧾 Total Sale: ₹"+total;
+  lcredit.innerHTML="❌ Udhaar: ₹"+credit;
+  lbalance.innerHTML="✅ Balance To Receive: ₹"+credit;
+}
+
+/* PROFESSIONAL INVOICE PDF */
+function pdf(i){
+  const {jsPDF}=window.jspdf;
+  let t=tx[i];
+  let p=new jsPDF();
+
+  p.setFontSize(16);
+  p.text(BUSINESS,105,15,{align:"center"});
+  p.setFontSize(10);
+  p.text("Mobile: "+BMOBILE,105,22,{align:"center"});
+  p.line(20,26,190,26);
+
+  p.setFontSize(11);
+  p.text("Invoice Date: "+t.date,20,38);
+  p.text("Customer: "+t.name,20,46);
+  p.text("Mobile: "+t.mobile,20,54);
+
+  p.text("Product Details",20,66);
+  p.line(20,68,190,68);
+
+  p.text("Product Name",25,76);
+  p.text("Amount",160,76);
+  p.line(20,78,190,78);
+
+  p.text(t.product,25,88);
+  p.text("₹ "+t.amount,160,88);
+
+  p.line(20,94,190,94);
+  p.text("Payment Type: "+t.type,25,104);
+  p.setFontSize(12);
+  p.text("TOTAL: ₹ "+t.amount,160,104);
+
+  p.setFontSize(10);
+  p.text("Thank you for visiting Anwar Tea Stall",105,120,{align:"center"});
+
+  p.save("Invoice_Anwar_Tea_Stall.pdf");
+}
+
+/* SHARE */
+async function share(i){
+  const {jsPDF}=window.jspdf;
+  let t=tx[i];
+  let p=new jsPDF();
+  p.text(BUSINESS,105,15,{align:"center"});
+  p.text("Product: "+t.product,20,40);
+  p.text("Amount: ₹ "+t.amount,20,50);
+  let file=new File([p.output("blob")],"Invoice_Anwar_Tea_Stall.pdf",{type:"application/pdf"});
+  if(navigator.share){
+    await navigator.share({files:[file],title:"Invoice"});
+  } else alert("Share not supported");
+}
+
+showTx();
+</script>
+
+</body>
+</html>
